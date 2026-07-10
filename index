@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Origeo — Game de Direção Defensiva</title>
+    <!-- Tailwind CSS para um visual fluido e moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js para geração de gráficos profissionais -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-[#023b58] text-slate-100 min-h-screen font-sans flex flex-col justify-between">
+
+    <script>
+        // COLE A URL GERADA PELA IMPLANTAÇÃO DO SEU GOOGLE APPS SCRIPT AQUI:
+        const API_URL = "https://script.google.com/macros/s/AKfycbwvP1PWVB5ibG8MQPVVQIm-Qr9JHbGLa0kDHoWUsZQ4DTDInIEZEhbiG-yaKEgoq49G/exec";
+        
+        // Credenciais locais do Admin para fins de demonstração (fallback se a API falhar)
+        const ADMIN_USER = "admin";
+        const ADMIN_PASS = "123456";
+    </script>
+
+    <!-- HEADER -->
+    <header class="bg-[#012538] border-b border-slate-700/50 py-4 px-6 sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl text-amber-500">🛞</span>
+                <div>
+                    <!-- Nome da marca em branco conforme solicitado -->
+                    <h1 class="text-lg font-black text-white tracking-wide uppercase">Origeo</h1>
+                    <p class="text-xs text-slate-300 font-semibold tracking-wider">Game de Direção Defensiva</p>
+                </div>
+            </div>
+            <button id="btnAdminView" onclick="alternarTela('tela-login')" class="text-xs font-semibold bg-slate-700/40 hover:bg-slate-600/60 border border-slate-500/30 px-4 py-2 rounded-lg text-slate-200 transition">Painel Administrativo</button>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        
+        <!-- TELA 1: CADASTRO DO ALUNO -->
+        <section id="tela-cadastro" class="view-section w-full max-w-md bg-[#012538]/90 p-8 rounded-2xl border border-slate-700/50 shadow-2xl transition">
+            <div class="text-center mb-6">
+                <span class="inline-block bg-amber-500/10 text-amber-400 p-3 rounded-full text-3xl mb-3">📝</span>
+                <h2 class="text-2xl font-bold text-white">Identificação do Motorista</h2>
+                <p class="text-slate-300 text-sm mt-1">Preencha seus dados técnicos para iniciar o percurso de avaliação de 20 desafios.</p>
+            </div>
+
+            <!-- Box informativo de tempo estimado solicitado -->
+            <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-center mb-5">
+                <p class="text-xs text-amber-400 font-semibold flex items-center justify-center gap-2">
+                    ⏱️ Este é um teste dinâmico que leva em média 15 minutos para ser respondido.
+                </p>
+            </div>
+            
+            <form id="formCadastro" onsubmit="confirmarEIniciarJogo(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-300 mb-2 tracking-wider">Nome Completo</label>
+                    <input type="text" id="cadNome" placeholder="Ex: Carlos Alberto Silva" required class="w-full bg-[#023b58]/80 border border-slate-600/80 rounded-xl p-3.5 text-white focus:outline-none focus:border-amber-500 transition placeholder-slate-500">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-300 mb-2 tracking-wider">email corporativo</label>
+                    <input type="text" id="cadMatricula" placeholder="email@origeo" required class="w-full bg-[#023b58]/80 border border-slate-600/80 rounded-xl p-3.5 text-white focus:outline-none focus:border-amber-500 transition placeholder-slate-500">
+                </div>
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black p-4 rounded-xl transition shadow-lg shadow-amber-500/20 uppercase tracking-wider text-sm mt-2">Iniciar Jornada de Testes</button>
+            </form>
+        </section>
+
+        <!-- TELA 2: ARENA DO JOGO -->
+        <section id="tela-jogo" class="view-section hidden w-full max-w-2xl bg-[#012538]/90 p-6 sm:p-8 rounded-2xl border border-slate-700/50 shadow-2xl transition">
+            <!-- Cabeçalho do Exercício -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700/50 pb-4 mb-6">
+                <div>
+                    <span id="gameCategoria" class="bg-amber-500/20 text-amber-400 text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wider">Categoria</span>
+                    <h3 id="textoPergunta" class="text-lg font-bold text-white mt-2">Pergunta de exemplo carregando...</h3>
+                </div>
+                <div class="text-right flex sm:flex-col items-center justify-between sm:justify-start gap-2 shrink-0">
+                    <span id="gameProgresso" class="text-xs text-slate-300 font-bold bg-[#023b58] px-3 py-1.5 rounded-lg border border-slate-600/50">Desafio 1 de 20</span>
+                </div>
+            </div>
+
+            <!-- Mecânica Dinâmica dos Desafios -->
+            <div id="container-jogo-dinamico" class="mb-6 min-h-[220px] flex flex-col justify-center">
+                <!-- Conteúdo gerado dinamicamente -->
+            </div>
+
+            <!-- Botões de Ação do Teste -->
+            <div class="space-y-3">
+                <button id="btnConfirmar" onclick="confirmarResposta()" class="hidden w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black p-3.5 rounded-xl transition text-center uppercase tracking-wider shadow-lg">Confirmar Resposta</button>
+                <button id="btnProxima" onclick="proximaEtapa()" class="hidden w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black p-3.5 rounded-xl transition text-center uppercase tracking-wider shadow-lg">Avançar para o Próximo Desafio ➔</button>
+            </div>
+        </section>
+
+        <!-- TELA 3: TELA DE FINALIZAÇÃO -->
+        <section id="tela-fim" class="view-section hidden w-full max-w-md bg-[#012538]/90 p-8 rounded-2xl border border-slate-700/50 text-center shadow-2xl transition">
+            <div class="text-6xl mb-4">🏆</div>
+            <h2 class="text-3xl font-black mb-2 text-white">Avaliação Concluída!</h2>
+            <p class="text-slate-300 text-sm mb-6">Seu desempenho pedagógico foi registrado com sucesso e enviado em tempo real para a base de dados de monitoramento da frota.</p>
+            
+            <div class="bg-[#023b58] p-5 rounded-xl border border-slate-750 mb-6 flex justify-around items-center">
+                <div>
+                    <span class="text-xs uppercase text-slate-455 block mb-1 font-bold">Acertos</span>
+                    <span id="notaFimAcertos" class="text-2xl font-black text-emerald-400">0/20</span>
+                </div>
+                <div class="h-10 w-[1px] bg-slate-700"></div>
+                <div>
+                    <span class="text-xs uppercase text-slate-455 block mb-1 font-bold">Pontuação Geral</span>
+                    <span id="notaFinal" class="text-2xl font-black text-amber-400">0/100</span>
+                </div>
+            </div>
+
+            <button onclick="window.location.reload()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold p-3.5 rounded-xl transition">Reiniciar Teste</button>
+        </section>
+
+        <!-- TELA 4: TELA DE LOGIN DO ADMIN -->
+        <section id="tela-login" class="view-section hidden w-full max-w-md bg-[#012538]/90 p-8 rounded-2xl border border-slate-700/50 shadow-2xl transition">
+            <div class="text-center mb-6">
+                <span class="inline-block bg-slate-700 p-3 rounded-full text-2xl mb-2">🔒</span>
+                <h2 class="text-xl font-bold text-white">Acesso do Administrador</h2>
+                <p class="text-slate-300 text-sm">Autenticação necessária para acessar o painel e os relatórios pedagógicos.</p>
+            </div>
+            
+            <form onsubmit="loginAdmin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-300 mb-2 tracking-wider">Usuário</label>
+                    <input type="text" id="admUser" required class="w-full bg-[#023b58]/80 border border-slate-600/80 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-300 mb-2 tracking-wider">Senha</label>
+                    <input type="password" id="admPass" required class="w-full bg-[#023b58]/80 border border-slate-600/80 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div class="flex flex-col gap-3 pt-2">
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold p-3.5 rounded-xl transition uppercase tracking-wider text-sm">Acessar Painel</button>
+                    <!-- Opção de Voltar para realizar o teste -->
+                    <button type="button" onclick="alternarTela('tela-cadastro')" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-100 font-bold p-3 rounded-xl transition text-xs uppercase tracking-wider text-center">⬅️ Voltar para o Teste</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- TELA 5: DASHBOARD PRO -->
+        <section id="tela-dashboard" class="view-section hidden w-full max-w-6xl bg-[#023b58] p-2 sm:p-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                <div>
+                    <h2 class="text-3xl font-black text-white tracking-tight">Painel de Segurança e Monitoramento Viário</h2>
+                    <p class="text-slate-300 text-sm">Métricas estratégicas alimentadas diretamente da base de dados ativa.</p>
+                </div>
+                <div class="flex gap-2">
+                    <!-- Opção de Voltar para realizar o teste diretamente do painel administrativo -->
+                    <button onclick="window.location.reload()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-4 py-2 rounded-lg border border-slate-600 transition">⬅️ Voltar para o Teste</button>
+                    <button onclick="window.location.reload()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold px-4 py-2 rounded-lg border border-red-500/20 transition">Encerrar Sessão</button>
+                </div>
+            </div>
+
+            <!-- Box de Alerta Vermelho de Conexão -->
+            <div id="alertaErroConexao" class="hidden bg-red-500/20 border-2 border-red-500 text-red-200 p-4 rounded-xl mb-6 text-sm flex items-center gap-3">
+                <span class="text-xl">⚠️</span>
+                <div>
+                    <strong class="block text-white">Falha ao conectar com a Base de Dados!</strong>
+                    O painel não pôde ler as informações. Verifique se o seu Apps Script está implantado corretamente para <strong>"Qualquer Pessoa" (Anyone)</strong>.
+                </div>
+            </div>
+
+            <!-- Cards de Métricas Rápidas -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                <div class="bg-[#012538] p-5 rounded-2xl border border-slate-700/50 shadow-md">
+                    <span class="text-slate-400 text-xs uppercase font-bold tracking-wider">Total de Diagnósticos Realizados</span>
+                    <h4 id="dashTotalRegistros" class="text-3xl font-black text-amber-500 mt-1">0</h4>
+                </div>
+                <div class="bg-[#012538] p-5 rounded-2xl border border-slate-700/50 shadow-md">
+                    <span class="text-slate-400 text-xs uppercase font-bold tracking-wider">Nível de Conformidade da Frota</span>
+                    <h4 id="dashMediaAcertos" class="text-3xl font-black text-emerald-400 mt-1">0%</h4>
+                </div>
+                <div class="bg-[#012538] p-5 rounded-2xl border border-slate-700/50 shadow-md">
+                    <span class="text-slate-400 text-xs uppercase font-bold tracking-wider font-bold">Média Geral da Pontuação (0-100)</span>
+                    <h4 id="dashMediaNota" class="text-3xl font-black text-indigo-400 mt-1">0 / 100</h4>
+                </div>
+            </div>
+
+            <!-- Gráficos Analíticos -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Grafico de Conformidade Geral -->
+                <div class="bg-[#012538] p-5 rounded-2xl border border-slate-700/50 flex flex-col justify-between shadow-md">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-200 mb-2 uppercase tracking-wider">Conformidade e Segurança</h3>
+                        <p class="text-xs text-slate-455 mb-4">Proporção geral de respostas corretas (seguras) contra comportamentos inseguros.</p>
+                    </div>
+                    <div class="relative h-60 flex items-center justify-center">
+                        <canvas id="chartGeral"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Grafico de Aproveitamento por Categoria -->
+                <div class="bg-[#012538] p-5 rounded-2xl border border-slate-700/50 flex flex-col justify-between shadow-md">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-200 mb-2 uppercase tracking-wider">Aproveitamento por Categoria</h3>
+                        <p class="text-xs text-slate-455 mb-4">Identificação de lacunas de treinamento técnico em cada pilar operacional.</p>
+                    </div>
+                    <div class="relative h-60">
+                        <canvas id="chartCategorias"></canvas>
+                    </div>
+                </div>
+
+                <!-- Grafico: Índice de Riscos/Falhas Críticas -->
+                <div class="bg-[#012538] p-5 rounded-2xl border border-slate-700/50 flex flex-col justify-between shadow-md">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-200 mb-2 uppercase tracking-wider text-red-400">🚨 Pontos Críticos de Risco Viário</h3>
+                        <p class="text-xs text-slate-455 mb-4">Taxa de erro em decisões de alto risco (ex: aquaplanagem, distância de segurança).</p>
+                    </div>
+                    <div class="relative h-60">
+                        <canvas id="chartFalhasCriticas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-[#012538] text-slate-400 text-xs text-center py-4 border-t border-slate-800/80">
+        <p>© 2026 Origeo. Desenvolvido para Capacitação Técnica de Condutores.</p>
+    </footer>
+
+    <!-- MODAL 1: AVISO VISUAL DE INÍCIO DE TESTE (SUBSTITUTO DO POPUP DO NAVEGADOR) -->
+    <div id="modal-inicio" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden transition-all duration-300">
+        <div class="bg-[#012538] border border-amber-500/30 p-8 rounded-2xl max-w-md w-full shadow-2xl text-center scale-95 transition-transform duration-300" id="modal-inicio-card">
+            <span class="inline-block bg-amber-500/10 text-amber-400 p-3 rounded-full text-3xl mb-4">🚀</span>
+            <h3 class="text-xl font-bold text-white mb-2">Identificação Confirmada!</h3>
+            <p class="text-slate-300 text-sm mb-6 leading-relaxed">
+                Sua identificação foi validada com sucesso! Você está pronto para iniciar o percurso de avaliação de 20 desafios práticos sob os parâmetros de segurança da <strong>Origeo</strong>. Dirija defensivamente!
+            </p>
+            <button onclick="fecharModalInicioEComecar()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black p-3.5 rounded-xl transition uppercase tracking-wider text-sm shadow-lg shadow-amber-500/20">
+                Começar Percurso ➔
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 2: AVISO VISUAL DE FIM DE TESTE (SUBSTITUTO DO POPUP DO NAVEGADOR) -->
+    <div id="modal-fim" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden transition-all duration-300">
+        <div class="bg-[#012538] border border-emerald-500/30 p-8 rounded-2xl max-w-md w-full shadow-2xl text-center scale-95 transition-transform duration-300" id="modal-fim-card">
+            <span class="inline-block bg-emerald-500/10 text-emerald-400 p-3 rounded-full text-3xl mb-4">🏆</span>
+            <h3 class="text-xl font-bold text-white mb-2">Avaliação Concluída!</h3>
+            <p class="text-slate-300 text-sm mb-6 leading-relaxed">
+                Parabéns! Você completou com sucesso todos os 20 desafios técnicos. Suas respostas foram computadas e enviadas em tempo real para a nossa base de dados de controle.
+            </p>
+            <button onclick="fecharModalFimEMostrarPontos()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black p-3.5 rounded-xl transition uppercase tracking-wider text-sm shadow-lg shadow-emerald-500/20">
+                Visualizar Meu Desempenho
+            </button>
+        </div>
+    </div>
+
+    <!-- LÓGICA DO SIMULADOR E BANCO DE DADOS DE 20 QUESTÕES -->
+    <script>
+        // Banco com 20 perguntas calibradas (4 para cada uma das 5 categorias pedagógicas)
+        const bancoPerguntas = [
+            // CATEGORIA 1: Verificação de Segurança (Perguntas 1-4)
+            {
+                tipo: "multipla",
+                categoria: "Verificação de Segurança",
+                pergunta: "Antes de abrir a porta do veículo para desembarcar em via pública, qual deve ser a conduta prioritária do condutor?",
+                alternativas: [
+                    "Sinalizar com o pisca-alerta ligado.",
+                    "Olhar atentamente o retrovisor esquerdo e o fluxo de veículos de trás.",
+                    "Abrir a porta rapidamente para evitar acúmulo de tráfego."
+                ],
+                correta: 1,
+                peso: 5,
+                critica: false
+            },
+            {
+                tipo: "fatofake",
+                categoria: "Verificação de Segurança",
+                pergunta: "Fato ou Fake: Itens cruciais como o extintor, o limpador de para-brisas e as luzes de freio só precisam ser testados durante a manutenção anual da frota.",
+                alternativas: ["FATO", "FAKE"],
+                correta: 1, // FAKE
+                peso: 5,
+                critica: true,
+                slug: "Verificação Pré-Viagem"
+            },
+            {
+                tipo: "ordem",
+                categoria: "Verificação de Segurança",
+                pergunta: "Ordene as ações obrigatórias e seguras para a FINALIZAÇÃO da viagem ao estacionar o veículo:",
+                itens: [
+                    { id: "A", texto: "Acionar o freio de estacionamento (freio de mão)." },
+                    { id: "B", texto: "Colocar a alavanca de marchas em ponto neutro." },
+                    { id: "C", texto: "Desligar todos os componentes elétricos e o motor." }
+                ],
+                ordemCorreta: ["B", "A", "C"],
+                peso: 5,
+                critica: false
+            },
+            {
+                tipo: "multipla",
+                categoria: "Verificação de Segurança",
+                pergunta: "Qual o procedimento de segurança correto ao notar que o extintor de incêndio do veículo está com o ponteiro na faixa vermelha?",
+                alternativas: [
+                    "Apenas agitar o extintor para redistribuir o pó químico interno.",
+                    "Substituir o equipamento imediatamente por estar sem pressão ou vencido.",
+                    "Continuar a viagem normalmente já que o uso do extintor é opcional."
+                ],
+                correta: 1,
+                peso: 5,
+                critica: true,
+                slug: "Segurança de Equipamentos"
+            },
+
+            // CATEGORIA 2: Ergonomia (Perguntas 5-8)
+            {
+                tipo: "ordem",
+                categoria: "Ergonomia",
+                pergunta: "Ordene a sequência técnica recomendada para os ajustes de cabine assim que entrar no veículo:",
+                itens: [
+                    { id: "A", texto: "Regular a altura e distância do banco." },
+                    { id: "B", texto: "Ajustar os retrovisores internos e externos." },
+                    { id: "C", texto: "Afivelar o cinto de segurança." }
+                ],
+                ordemCorreta: ["A", "B", "C"],
+                peso: 5,
+                critica: false
+            },
+            {
+                tipo: "fatofake",
+                categoria: "Ergonomia",
+                pergunta: "Fato ou Fake: O encosto de cabeça deve ser ajustado na altura da nuca do motorista, nunca ultrapassando a linha dos olhos, para prevenir lesões graves de chicoteamento.",
+                alternativas: ["FATO", "FAKE"],
+                correta: 1, // FAKE - deve ser na altura dos olhos ou topo das orelhas.
+                peso: 5,
+                critica: false
+            },
+            {
+                tipo: "multipla",
+                categoria: "Ergonomia",
+                pergunta: "Qual é a postura ideal dos braços em relação ao volante para evitar cansaço extremo e garantir boa mobilidade?",
+                alternativas: [
+                    "Braços completamente esticados e firmes no topo do volante.",
+                    "Cotovelos excessivamente flexionados, encostados no corpo.",
+                    "Braços levemente flexionados, alcançando o topo do volante com os punhos."
+                ],
+                correta: 2,
+                peso: 5,
+                critica: false
+            },
+            {
+                tipo: "multipla",
+                categoria: "Ergonomia",
+                pergunta: "Para diminuir os pontos cegos e garantir uma ergonomia visual segura, como devem ser ajustados os retrovisores externos?",
+                alternativas: [
+                    "Mostrando o máximo possível das laterais do próprio veículo.",
+                    "Mostrando o mínimo possível da lataria, priorizando a visibilidade da via.",
+                    "Apontados para o chão para monitorar os pneus traseiros."
+                ],
+                correta: 1,
+                peso: 5,
+                critica: false
+            },
+
+            // CATEGORIA 3: Atenção e Habilidade Técnica (Perguntas 9-12)
+            {
+                tipo: "multipla",
+                categoria: "Atenção e Habilidade Técnica",
+                pergunta: "Por que se deve ligar o primeiro estágio da ignição e aguardar alguns segundos antes de dar a partida?",
+                alternativas: [
+                    "Para dar tempo de carregar a bateria do celular conectada ao veículo.",
+                    "Para permitir que a central eletrônica faça a leitura dos sensores e apague as luzes de aviso.",
+                    "Não há função técnica, é apenas um hábito antigo."
+                ],
+                correta: 1,
+                peso: 5,
+                critica: false
+            },
+            {
+                tipo: "fatofake",
+                categoria: "Atenção e Habilidade Técnica",
+                pergunta: "Fato ou Fake: Para economizar combustível e embreagem em aclives, o motorista profissional deve sempre manter o veículo parado usando apenas o ponto de embreagem.",
+                alternativas: ["FATO", "FAKE"],
+                correta: 1, // FAKE - desgasta o conjunto prematuramente. Deve usar o freio.
+                peso: 5,
+                critica: false
+            },
+            {
+                tipo: "multipla",
+                categoria: "Atenção e Habilidade Técnica",
+                pergunta: "Pensando na posição das mãos no volante em linha reta (baseada em ponteiros de um relógio), qual é a recomendada?",
+                alternativas: [
+                    "Mãos nas posições de 12h00 e 6h00.",
+                    "Mãos nas posições de 9h15 ou 10h10.",
+                    "Apenas uma mão livre no topo e a outra apoiada no câmbio."
+                ],
+                correta: 1,
+                peso: 5,
+                critica: false
+            },
+            {
+                tipo: "cenario",
+                categoria: "Atenção e Habilidade Técnica",
+                pergunta: "Análise de Cenário de Risco: Você está dirigindo um veículo pesado carregado em um declive acentuado. O pedal de freio de serviço começa a ficar excessivamente macio e perder eficiência rápida. Qual é a ação técnica imediata correta?",
+                alternativas: [
+                    "Desligar a ignição do veículo imediatamente para frear o motor por falta de combustível.",
+                    "Utilizar o freio motor, reduzindo as marchas gradativamente para desacelerar usando a compressão do motor.",
+                    "Puxar o freio de estacionamento com força total de uma só vez para travar as rodas traseiras."
+                ],
+                correta: 1,
+                peso: 5,
+                critica: true,
+                slug: "Falha de Freio em Declive"
+            },
+
+            // CATEGORIA 4: Direção Defensiva (Perguntas 13-16)
+            {
+                tipo: "multipla",
+                categoria: "Direção Defensiva",
+                pergunta: "Ao avistar animais ou detritos na via expressa, qual a primeira atitude do condutor defensivo?",
+                alternativas: [
+                    "Buzinar agressivamente e acelerar para afastar o perigo.",
+                    "Reduzir a velocidade de forma gradual, sinalizando para os veículos de trás.",
+                    "Fazer uma conversão brusca para o acostamento sem olhar os lados."
+                ],
+                correta: 1,
+                peso: 5,
+                critica: false
+            },
+            {
+                tipo: "fatofake",
+                categoria: "Direção Defensiva",
+                pergunta: "Fato ou Fake: Em caso de aquaplanagem, a reação correta é pisar imediatamente no freio até que os pneus retomem contato com o asfalto.",
+                alternativas: ["FATO", "FAKE"],
+                correta: 1, // FAKE - deve tirar o pé do acelerador e segurar firme o volante.
+                peso: 5,
+                critica: true,
+                slug: "Reação em Aquaplanagem"
+            },
+            {
+                tipo: "multipla",
+                categoria: "Direção Defensiva",
+                pergunta: "Qual é a distância de segurança padrão (regra de contagem) indicada para frotas e veículos de grande porte?",
+                alternativas: [
+                    "Regra de 1 segundo.",
+                    "Regra de 2 segundos.",
+                    "Regra de 3 segundos (ou mais sob chuva)."
+                ],
+                correta: 2,
+                peso: 5,
+                critica: true,
+                slug: "Distância de Seguimento"
+            },
+            {
+                tipo: "multipla",
+                categoria: "Direção Defensiva",
+                pergunta: "Como agir preventivamente ao notar uma forte neblina ou fumaça na rodovia?",
+                alternativas: [
+                    "Ligar o pisca-alerta e manter a velocidade rápida para sair logo da neblina.",
+                    "Reduzir a velocidade, acionar o farol baixo e nunca parar na pista de rolamento.",
+                    "Estacionar imediatamente na faixa de tráfego rápido."
+                ],
+                correta: 1,
+                peso: 5,
+                critica: false
+            },
+
+            // CATEGORIA 5: Circulação e Conduta (Perguntas 17-20)
+            {
+                tipo: "multipla",
+                categoria: "Circulação e Conduta",
+                pergunta: "Num cruzamento sem sinalização de preferência, quem tem a preferência de passagem por lei?",
+                alternativas: [
+                    "O veículo que estiver trafegando em maior velocidade.",
+                    "O condutor que se aproximar pela direita do outro veículo.",
+                    "O veículo maior, como caminhões ou ônibus."
+                ],
+                correta: 1,
+                peso: 5,
+                critica: false
+            },
+            {
+                tipo: "fatofake",
+                categoria: "Circulação e Conduta",
+                pergunta: "Fato ou Fake: A placa 'Parada Obrigatória' exige apenas que o condutor diminua bem a velocidade e passe se não houver pedestres.",
+                alternativas: ["FATO", "FAKE"],
+                correta: 1, // FAKE - exige imobilização total.
+                peso: 5,
+                critica: true,
+                slug: "Respeito à Sinalização de Pare"
+            },
+            {
+                tipo: "cenario",
+                categoria: "Circulação e Conduta",
+                pergunta: "Análise de Cenário de Risco: Você se aproxima de uma rotatória movimentada de pistas duplas. Não há sinalização horizontal ou vertical explícita de trânsito regulamentando a preferência naquele instante. Qual conduta é legalmente correta?",
+                alternativas: [
+                    "A preferência é sempre de quem já se encontra circulando regularmente na rotatória.",
+                    "A preferência pertence ao veículo que se aproxima pela faixa mais à esquerda.",
+                    "O veículo que estiver transportando carga pesada tem prioridade física absoluta de passagem."
+                ],
+                correta: 0,
+                peso: 5,
+                critica: false
+            },
+            {
+                tipo: "multipla",
+                categoria: "Circulação e Conduta",
+                pergunta: "Qual deve ser a conduta do motorista profissional ao se aproximar de uma faixa de pedestres sem semáforo, com um pedestre iniciando a travessia?",
+                alternativas: [
+                    "Buzinar de leve para avisar que o carro vai passar rápido.",
+                    "Reduzir a velocidade e parar o veículo, concedendo a preferência ao pedestre.",
+                    "Apenas desviar lateralmente do pedestre sem frear."
+                ],
+                correta: 1,
+                peso: 5,
+                critica: true,
+                slug: "Proteção ao Pedestre"
+            }
+        ];
+
+        let dadosUsuario = { nome: "", matricula: "" };
+        let indiceAtual = 0;
+        let respostasDoUsuario = [];
+        let ordemSelecionada = [];
+        let opcaoSelecionadaTemp = null; // Guarda a opção do aluno antes de enviar
+
+        function alternarTela(idTela) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(idTela).classList.remove('hidden');
+        }
+
+        // Exibe o modal inline customizado no lugar do pop-up do navegador
+        function confirmarEIniciarJogo(e) {
+            e.preventDefault();
+            dadosUsuario.nome = document.getElementById('cadNome').value.trim();
+            dadosUsuario.matricula = document.getElementById('cadMatricula').value.trim();
+            
+            if(!dadosUsuario.nome || !dadosUsuario.matricula) {
+                return;
+            }
+
+            // Exibe o modal de início de forma integrada
+            const modal = document.getElementById('modal-inicio');
+            const card = document.getElementById('modal-inicio-card');
+            modal.classList.remove('hidden');
+            setTimeout(() => card.classList.remove('scale-95'), 10);
+        }
+
+        // Fecha o modal inline e renderiza as perguntas do percurso
+        function fecharModalInicioEComecar() {
+            const modal = document.getElementById('modal-inicio');
+            const card = document.getElementById('modal-inicio-card');
+            card.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                indiceAtual = 0;
+                respostasDoUsuario = [];
+                alternarTela('tela-jogo');
+                renderizarPergunta();
+            }, 150);
+        }
+
+        function renderizarPergunta() {
+            if(indiceAtual >= bancoPerguntas.length) {
+                finalizarQuiz();
+                return;
+            }
+
+            const item = bancoPerguntas[indiceAtual];
+            document.getElementById('gameCategoria').innerText = item.categoria;
+            document.getElementById('gameProgresso').innerText = `Desafio ${indiceAtual + 1} de ${bancoPerguntas.length}`;
+            document.getElementById('textoPergunta').innerText = item.pergunta;
+            
+            // Oculta botões de confirmação e avanço no carregamento
+            document.getElementById('btnConfirmar').classList.add('hidden');
+            document.getElementById('btnProxima').classList.add('hidden');
+            
+            opcaoSelecionadaTemp = null; // Reseta a seleção temporária
+
+            const container = document.getElementById('container-jogo-dinamico');
+            container.innerHTML = "";
+
+            // 1. MECÂNICA DE MULTIPLA ESCOLHA & CENÁRIO DE RISCO
+            if (item.tipo === "multipla" || item.tipo === "cenario") {
+                item.alternativas.forEach((alt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full text-left bg-[#023b58] hover:bg-[#03486c] p-4 rounded-xl mb-3 border border-slate-650 text-sm transition font-medium text-slate-200 block shadow-sm";
+                    btn.innerText = alt;
+                    btn.onclick = () => selecionarOpcaoSimples(idx, alt);
+                    container.appendChild(btn);
+                });
+            } 
+            // 2. MECÂNICA DE FATO OU FAKE
+            else if (item.tipo === "fatofake") {
+                const grid = document.createElement('div');
+                grid.className = "grid grid-cols-2 gap-4 mt-2";
+                item.alternativas.forEach((alt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = idx === 0 
+                        ? "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold p-6 rounded-2xl border-2 border-emerald-500/30 text-lg transition shadow"
+                        : "bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold p-6 rounded-2xl border-2 border-red-500/30 text-lg transition shadow";
+                    btn.innerText = alt;
+                    btn.onclick = () => selecionarFatoFake(idx, alt);
+                    grid.appendChild(btn);
+                });
+                container.appendChild(grid);
+            } 
+            // 3. MECÂNICA DE ORDENAÇÃO DE ITENS
+            else if (item.tipo === "ordem") {
+                ordemSelecionada = [];
+                const instr = document.createElement('p');
+                instr.className = "text-xs text-slate-300 text-center mb-4 italic";
+                instr.innerText = "Clique nas etapas abaixo na ordem em que devem ser realizadas:";
+                container.appendChild(instr);
+
+                // Área para mostrar a ordem em tempo real
+                const areaOrdem = document.createElement('div');
+                areaOrdem.id = "area-ordem-resultado";
+                areaOrdem.className = "bg-[#023b58] p-4 rounded-xl mb-3 border border-slate-600 flex flex-col gap-2 min-h-[48px]";
+                container.appendChild(areaOrdem);
+
+                const containerBotoes = document.createElement('div');
+                containerBotoes.id = "lista-botoes-ordem";
+                containerBotoes.className = "space-y-2 mb-4";
+
+                item.itens.forEach((it) => {
+                    const itemBtn = document.createElement('button');
+                    itemBtn.id = `btn-ordem-${it.id}`;
+                    itemBtn.className = "w-full text-left bg-[#023b58] hover:bg-[#03486c] p-3.5 rounded-xl border border-slate-650 text-xs font-semibold text-slate-200 transition";
+                    itemBtn.innerText = it.texto;
+                    itemBtn.onclick = () => {
+                        if(!ordemSelecionada.includes(it.id)) {
+                            ordemSelecionada.push(it.id);
+                            itemBtn.disabled = true;
+                            itemBtn.className = "w-full text-left bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 text-xs font-semibold text-slate-500 cursor-not-allowed opacity-50";
+                            
+                            // Cria representação visual da ordem selecionada
+                            const badge = document.createElement('div');
+                            badge.className = "bg-amber-500/10 text-amber-400 p-2 rounded border border-amber-500/20 text-xs font-bold flex items-center gap-2";
+                            badge.innerHTML = `<span class="bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded text-[10px] font-black">${ordemSelecionada.length}º</span> ${it.texto}`;
+                            areaOrdem.appendChild(badge);
+
+                            if(ordemSelecionada.length === item.itens.length) {
+                                document.getElementById('btn-reset-ordem').classList.add('hidden'); // Esconde o reset após terminar
+                                document.getElementById('btnConfirmar').classList.remove('hidden'); // Ativa botão confirmar
+                            }
+                        }
+                    };
+                    containerBotoes.appendChild(itemBtn);
+                });
+                container.appendChild(containerBotoes);
+
+                // Botão de Reset/Limpar
+                const btnResetOrdem = document.createElement('button');
+                btnResetOrdem.id = "btn-reset-ordem";
+                btnResetOrdem.className = "w-full text-center bg-slate-700/50 hover:bg-slate-700 text-xs text-amber-400 font-semibold p-2.5 rounded-lg border border-slate-600 transition uppercase tracking-wider mb-2";
+                btnResetOrdem.innerText = "🔄 Corrigir / Limpar Ordem";
+                btnResetOrdem.onclick = () => limparOrdem(item);
+                container.appendChild(btnResetOrdem);
+            }
+        }
+
+        // Permite ao aluno selecionar e alterar a opção livremente antes de confirmar
+        function selecionarOpcaoSimples(idx, texto) {
+            opcaoSelecionadaTemp = idx;
+            
+            const container = document.getElementById('container-jogo-dinamico');
+            const botoes = container.querySelectorAll('button');
+            
+            // Destaca visualmente a selecionada sem avaliar ainda
+            botoes.forEach((btn, bIdx) => {
+                if (bIdx === idx) {
+                    btn.className = "w-full text-left bg-amber-500/10 text-amber-400 p-4 rounded-xl mb-3 border-2 border-amber-500 font-bold scale-[1.01] transition-all shadow-md shadow-amber-500/10";
+                } else {
+                    btn.className = "w-full text-left bg-[#023b58] hover:bg-[#03486c] p-4 rounded-xl mb-3 border border-slate-650 text-sm transition font-medium text-slate-200 block shadow-sm";
+                }
+            });
+
+            // Mostra o botão para o aluno enviar a resposta
+            document.getElementById('btnConfirmar').classList.remove('hidden');
+        }
+
+        // Permite ao aluno selecionar e alterar Fato ou Fake livremente antes de confirmar
+        function selecionarFatoFake(idx, texto) {
+            opcaoSelecionadaTemp = idx;
+            
+            const container = document.getElementById('container-jogo-dinamico');
+            const botoes = container.querySelectorAll('button');
+            
+            // Destaca visualmente a selecionada de Fato ou Fake com borda amarela
+            botoes.forEach((btn, bIdx) => {
+                if (bIdx === idx) {
+                    if (bIdx === 0) {
+                        btn.className = "bg-emerald-500/15 text-emerald-400 font-bold p-6 rounded-2xl border-4 border-amber-500 text-lg transition shadow-lg";
+                    } else {
+                        btn.className = "bg-red-500/15 text-red-400 font-bold p-6 rounded-2xl border-4 border-amber-500 text-lg transition shadow-lg";
+                    }
+                } else {
+                    if (bIdx === 0) {
+                        btn.className = "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold p-6 rounded-2xl border-2 border-emerald-500/30 text-lg transition shadow";
+                    } else {
+                        btn.className = "bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold p-6 rounded-2xl border-2 border-red-500/30 text-lg transition shadow";
+                    }
+                }
+            });
+
+            document.getElementById('btnConfirmar').classList.remove('hidden');
+        }
+
+        // Bloqueia e corrige a resposta apenas no clique de Confirmar
+        function confirmarResposta() {
+            const item = bancoPerguntas[indiceAtual];
+            document.getElementById('btnConfirmar').classList.add('hidden');
+            
+            let acertou = false;
+            let respostaTexto = "";
+            let nota = 0;
+
+            const container = document.getElementById('container-jogo-dinamico');
+
+            if (item.tipo === "multipla" || item.tipo === "cenario") {
+                const botoes = container.querySelectorAll('button');
+                acertou = (opcaoSelecionadaTemp === item.correta);
+                respostaTexto = item.alternativas[opcaoSelecionadaTemp];
+                nota = acertou ? item.peso : 0;
+
+                botoes.forEach((btn, bIdx) => {
+                    btn.disabled = true;
+                    if (bIdx === item.correta) {
+                        // Resposta correta sempre em verde
+                        btn.className = "w-full text-left bg-emerald-500/20 text-emerald-400 p-4 rounded-xl mb-3 border-2 border-emerald-500 font-bold transition-all";
+                    } else if (bIdx === opcaoSelecionadaTemp) {
+                        // Se o aluno escolheu a errada, ela fica vermelha
+                        btn.className = "w-full text-left bg-red-500/20 text-red-400 p-4 rounded-xl mb-3 border-2 border-red-500 font-bold transition-all";
+                    } else {
+                        // Outras opções são desativadas e esmaecidas
+                        btn.className = "w-full text-left bg-[#023b58]/50 p-4 rounded-xl mb-3 border border-slate-700/50 text-sm text-slate-500 block shadow-sm cursor-not-allowed";
+                    }
+                });
+            }
+            else if (item.tipo === "fatofake") {
+                const botoes = container.querySelectorAll('button');
+                acertou = (opcaoSelecionadaTemp === item.correta);
+                respostaTexto = item.alternativas[opcaoSelecionadaTemp];
+                nota = acertou ? item.peso : 0;
+
+                botoes.forEach((btn, bIdx) => {
+                    btn.disabled = true;
+                    if (bIdx === item.correta) {
+                        btn.className = "bg-emerald-500/20 text-emerald-400 font-bold p-6 rounded-2xl border-2 border-emerald-500 text-lg transition shadow";
+                    } else if (bIdx === opcaoSelecionadaTemp) {
+                        btn.className = "bg-red-500/20 text-red-400 font-bold p-6 rounded-2xl border-2 border-red-500 text-lg transition shadow";
+                    } else {
+                        btn.className = "bg-slate-800/80 text-slate-600 font-bold p-6 rounded-2xl border border-slate-700 text-lg transition shadow cursor-not-allowed opacity-40";
+                    }
+                });
+            }
+            else if (item.tipo === "ordem") {
+                acertou = JSON.stringify(ordemSelecionada) === JSON.stringify(item.ordemCorreta);
+                respostaTexto = "Ordem: " + ordemSelecionada.join(" -> ");
+                nota = acertou ? item.peso : 0;
+
+                const areaOrdem = document.getElementById('area-ordem-resultado');
+                if (acertou) {
+                    areaOrdem.className = "bg-emerald-500/10 p-4 rounded-xl mb-4 border-2 border-emerald-500 flex flex-col gap-2 min-h-[48px]";
+                } else {
+                    areaOrdem.className = "bg-red-500/10 p-4 rounded-xl mb-4 border-2 border-red-500 flex flex-col gap-2 min-h-[48px]";
+                }
+            }
+
+            // Registra os dados estruturados do aluno para a base de dados
+            respostasDoUsuario.push({
+                categoria: item.categoria,
+                pergunta: item.pergunta,
+                respostaUsuario: respostaTexto,
+                acertou: acertou,
+                nota: nota
+            });
+
+            // Mostra o botão para avançar ao próximo desafio
+            document.getElementById('btnProxima').classList.remove('hidden');
+        }
+
+        function proximaEtapa() {
+            indiceAtual++;
+            renderizarPergunta();
+        }
+
+        // Exibe aviso inline integrado na tela antes da exibição das notas finais
+        function finalizarQuiz() {
+            const modal = document.getElementById('modal-fim');
+            const card = document.getElementById('modal-fim-card');
+            modal.classList.remove('hidden');
+            setTimeout(() => card.classList.remove('scale-95'), 10);
+
+            // Inicia o processo de envio em lote em segundo plano para a base de dados
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: "salvarResposta",
+                    nome: dadosUsuario.nome,
+                    matricula: dadosUsuario.matricula,
+                    respostas: respostasDoUsuario
+                })
+            }).catch(err => {
+                console.error("Falha ao salvar remotamente, mas o fluxo local continua ativo.", err);
+            });
+        }
+
+        // Fecha o modal de finalização e exibe o painel de desempenho do motorista
+        function fecharModalFimEMostrarPontos() {
+            const modal = document.getElementById('modal-fim');
+            const card = document.getElementById('modal-fim-card');
+            card.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                alternarTela('tela-fim');
+                
+                const totalAcertos = respostasDoUsuario.filter(r => r.acertou).length;
+                const notaTotal = respostasDoUsuario.reduce((acc, curr) => acc + curr.nota, 0);
+                
+                document.getElementById('notaFimAcertos').innerText = `${totalAcertos} / 20`;
+                document.getElementById('notaFinal').innerText = `${notaTotal} pts`;
+            }, 150);
+        }
+
+        // --- SISTEMA E INTERFACE DE MONITORAMENTO DO ADMIN ---
+        function loginAdmin(e) {
+            e.preventDefault();
+            const user = document.getElementById('admUser').value;
+            const pass = document.getElementById('admPass').value;
+
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "adminLogin", username: user, password: pass })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if(res.success) {
+                    alternarTela('tela-dashboard');
+                    carregarDadosDashboard();
+                } else {
+                    alert(res.message);
+                }
+            })
+            .catch(() => {
+                // Caso o usuário ainda não tenha configurado o link final do AppsScript, permitimos a demonstração offline
+                if(user === ADMIN_USER && pass === ADMIN_PASS) {
+                    alternarTela('tela-dashboard');
+                    carregarDadosDashboard();
+                } else {
+                    // Substituição elegante de erro visual em tela no lugar de popups nativos
+                    const btn = document.querySelector("#tela-login button[type='submit']");
+                    const originalText = btn.innerText;
+                    btn.innerText = "❌ Credenciais Incorretas!";
+                    btn.className = "w-full bg-red-600 text-white font-bold p-3.5 rounded-xl transition";
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                        btn.className = "w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold p-3.5 rounded-xl transition";
+                    }, 2000);
+                }
+            });
+        }
+
+        function carregarDadosDashboard() {
+            document.getElementById('alertaErroConexao').classList.add('hidden');
+            
+            fetch(API_URL)
+            .then(res => {
+                if (!res.ok) throw new Error("Erro de HTTP");
+                return res.json();
+            })
+            .then(dados => {
+                renderizarTabelaEGraficos(dados);
+            })
+            .catch((err) => {
+                console.warn("Erro ao buscar dados na base de dados ativa. Exibindo informações de exemplo temporárias:", err);
+                
+                // Exibe o banner vermelho explicando que a conexão com a base de dados falhou
+                document.getElementById('alertaErroConexao').classList.remove('hidden');
+                
+                // Gera dados simulados estritos de 3 pessoas completas (60 registros) para que o admin visualize o dashboard
+                const dadosFicticios = [];
+                const matriculasMock = ["MTR-101", "MTR-202", "MTR-303"];
+                const nomesMock = ["Carlos Silva", "Ana Costa", "Roberto Souza"];
+                const acertosPorAluno = [16, 12, 19];
+
+                matriculasMock.forEach((mat, idxAluno) => {
+                    const nome = nomesMock[idxAluno];
+                    const limiteAcertos = acertosPorAluno[idxAluno];
+                    
+                    bancoPerguntas.forEach((perg, idxPerg) => {
+                        const acertou = idxPerg < limiteAcertos;
+                        dadosFicticios.push({
+                            matricula: mat,
+                            nome: nome,
+                            categoria: perg.categoria,
+                            pergunta: perg.pergunta,
+                            resultado: acertou ? "Acertou" : "Errou",
+                            nota: acertou ? perg.peso : 0
+                        });
+                    });
+                });
+
+                renderizarTabelaEGraficos(dadosFicticios);
+            });
+        }
+
+        let chart1Instance = null;
+        let chart2Instance = null;
+        let chart3Instance = null;
+
+        function renderizarTabelaEGraficos(dados) {
+            let acertos = 0;
+            let totalRespostas = dados.length;
+            
+            // Agrupamentos estatísticos pedagógicos
+            let catStats = {};
+            
+            // Itens críticos específicos para o painel de frotas
+            let falhasCriticas = {
+                "Reação em Aquaplanagem": { erros: 0, total: 0 },
+                "Falha de Freio em Declive": { erros: 0, total: 0 },
+                "Verificação Pré-Viagem": { erros: 0, total: 0 },
+                "Distância de Seguimento": { erros: 0, total: 0 },
+                "Respeito à Sinalização de Pare": { erros: 0, total: 0 },
+                "Proteção ao Pedestre": { erros: 0, total: 0 }
+            };
+
+            dados.forEach(d => {
+                // Estatística geral de acertos
+                if(d.resultado === "Acertou" || d.nota > 0) acertos++;
+                
+                // Estatística por Categoria
+                if(!catStats[d.categoria]) {
+                    catStats[d.categoria] = { acertos: 0, total: 0 };
+                }
+                if(d.resultado === "Acertou" || d.nota > 0) catStats[d.categoria].acertos++;
+                catStats[d.categoria].total++;
+
+                // Mapeamento de Falhas Críticas de Segurança
+                let textoPergunta = (d.pergunta || "").toLowerCase();
+                if (textoPergunta.includes("aquaplanagem")) {
+                    falhasCriticas["Reação em Aquaplanagem"].total++;
+                    if (d.resultado === "Errou" || d.nota === 0) falhasCriticas["Reação em Aquaplanagem"].erros++;
+                } else if (textoPergunta.includes("declive") || textoPergunta.includes("freio")) {
+                    falhasCriticas["Falha de Freio em Declive"].total++;
+                    if (d.resultado === "Errou" || d.nota === 0) falhasCriticas["Falha de Freio em Declive"].erros++;
+                } else if (textoPergunta.includes("extintor") || textoPergunta.includes("limpador")) {
+                    falhasCriticas["Verificação Pré-Viagem"].total++;
+                    if (d.resultado === "Errou" || d.nota === 0) falhasCriticas["Verificação Pré-Viagem"].erros++;
+                } else if (textoPergunta.includes("distância")) {
+                    falhasCriticas["Distância de Seguimento"].total++;
+                    if (d.resultado === "Errou" || d.nota === 0) falhasCriticas["Distância de Seguimento"].erros++;
+                } else if (textoPergunta.includes("faixa") || textoPergunta.includes("pedestre")) {
+                    falhasCriticas["Proteção ao Pedestre"].total++;
+                    if (d.resultado === "Errou" || d.nota === 0) falhasCriticas["Proteção ao Pedestre"].erros++;
+                } else if (textoPergunta.includes("obrigatória") || textoPergunta.includes("pare")) {
+                    falhasCriticas["Respeito à Sinalização de Pare"].total++;
+                    if (d.resultado === "Errou" || d.nota === 0) falhasCriticas["Respeito à Sinalização de Pare"].erros++;
+                }
+            });
+
+            // Divisão exata por 20 sobre o total de respostas (Regra de Negócio: diagnósticos completos concluídos)
+            const totalDiagnosticos = totalRespostas === 0 ? 0 : Math.floor(totalRespostas / 20);
+
+            // Exibe os contadores e médias nos respectivos cards
+            document.getElementById('dashTotalRegistros').innerText = totalDiagnosticos;
+            
+            const mediaAcertosPercentual = Math.round((acertos / totalRespostas) * 100) || 0;
+            document.getElementById('dashMediaAcertos').innerText = `${mediaAcertosPercentual}%`;
+            
+            // Calcula a nota total média por avaliação concluída
+            const totalPontosAcumulados = dados.reduce((acc, curr) => acc + Number(curr.nota || 0), 0);
+            const mediaNotaGeral = totalDiagnosticos > 0 ? Math.round(totalPontosAcumulados / totalDiagnosticos) : 0;
+            document.getElementById('dashMediaNota').innerText = `${mediaNotaGeral} / 100`;
+
+            // Destruir instâncias antigas para evitar vazamento de memória e sobreposição nos gráficos
+            if (chart1Instance) chart1Instance.destroy();
+            if (chart2Instance) chart2Instance.destroy();
+            if (chart3Instance) chart3Instance.destroy();
+
+            // GRÁFICO 1: Rosca Geral de Conformidade
+            chart1Instance = new Chart(document.getElementById('chartGeral'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Decisões Seguras', 'Comportamentos de Risco'],
+                    datasets: [{
+                        data: [acertos, totalRespostas - acertos],
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { size: 11 } } }
+                    }
+                }
+            });
+
+            // GRÁFICO 2: Barras de Aproveitamento por Categoria
+            const categoriasArr = Object.keys(catStats).length > 0 ? Object.keys(catStats) : ["Verificação de Segurança", "Ergonomia", "Atenção e Habilidade Técnica", "Direção Defensiva", "Circulação e Conduta"];
+            const dadosPercentualArr = categoriasArr.map(c => catStats[c] ? Math.round((catStats[c].acertos / catStats[c].total) * 100) : 75);
+
+            chart2Instance = new Chart(document.getElementById('chartCategorias'), {
+                type: 'bar',
+                data: {
+                    labels: categoriasArr.map(c => c.split(" ")), 
+                    datasets: [{
+                        label: 'Taxa de Acerto (%)',
+                        data: dadosPercentualArr,
+                        backgroundColor: '#f59e0b',
+                        borderColor: '#d97706',
+                        borderWidth: 1,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#cbd5e1', font: { size: 9 } } },
+                        y: { beginAtZero: true, max: 100, ticks: { color: '#cbd5e1' } }
+                    }
+                }
+            });
+
+            // GRÁFICO 3: Índice de Erro em Itens Críticos de Segurança
+            const labelsCriticas = Object.keys(falhasCriticas);
+            const dadosErrosCriticos = labelsCriticas.map(label => {
+                const item = falhasCriticas[label];
+                return item.total > 0 ? Math.round((item.erros / item.total) * 100) : 0;
+            });
+
+            chart3Instance = new Chart(document.getElementById('chartFalhasCriticas'), {
+                type: 'bar',
+                indexAxis: 'y', 
+                data: {
+                    labels: labelsCriticas,
+                    datasets: [{
+                        label: 'Índice de Falha / Risco (%)',
+                        data: dadosErrosCriticos,
+                        backgroundColor: 'rgba(239, 68, 68, 0.85)',
+                        borderColor: '#ef4444',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, max: 100, ticks: { color: '#cbd5e1' } },
+                        y: { grid: { display: false }, ticks: { color: '#f1f5f9', font: { size: 9, weight: 'bold' } } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
